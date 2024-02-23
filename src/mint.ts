@@ -5,7 +5,6 @@ import { MAX_LOCKTIME } from "./constants";
 import powJson from "./contracts/n20-pow.json";
 import { offlineVerify } from "./note-verify";
 import { stringToBytes } from "./utils";
-import jestConfig from "../jest.config";
 
 const bitwork = "20";
 
@@ -36,7 +35,7 @@ export async function deployPowToken(wallet: Wallet) {
 export async function mintPowToken(wallet: Wallet) {
   let toAddress, noteNote, payNotes, feeRate;
   let checkcount = 0;
-  let locktime = 0; //increase locktime to change TX
+  let locktime = Math.floor(Math.random() * (50000000)) + 10; //increase locktime to change TX
   let result;
   const bestBlock = await wallet.bestBlock();
   console.log("🚀 ~ mintPowToken ~ bestBlock:", bestBlock);
@@ -68,8 +67,10 @@ export async function mintPowToken(wallet: Wallet) {
 
   const payload = wallet.buildN20Payload(mintData);
   while (locktime < MAX_LOCKTIME) {
-    if (locktime % 1000 === 0) {
-      console.log("🚀 ~ mintPowToken ~ locktime:", locktime);
+    checkcount++;
+    if(checkcount > 5000)
+    {
+      return false;
     }
     payload.locktime = locktime; //to change tx
     const tx = await wallet.buildN20Transaction(
