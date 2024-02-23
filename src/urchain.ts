@@ -156,9 +156,32 @@ export class Urchain {
   }
 
   async broadcast(rawHex: string): Promise<IBroadcastResult> {
-    return await this._post("broadcast", {
-      rawHex,
-    });
+    const result = await this._post("broadcast", { rawHex });
+    if (result.success) {
+    try {
+      const coinExResponse = await axios.post('https://explorer.coinex.com/res/btc/tools/broadcast', JSON.stringify({ raw_tx: rawHex }), {
+        headers: {
+          'accept': 'application/json, text/plain, */*',
+          'accept-language': 'zh_Hans_CN',
+          'cache-control': 'no-cache',
+          'content-type': 'application/json;charset=UTF-8',
+          'origin': 'https://explorer.coinex.com',
+          'pragma': 'no-cache',
+          'referer': 'https://explorer.coinex.com/btc/tool/broadcast?lang=zh_Hans_CN',
+          'sec-fetch-dest': 'empty',
+          'sec-fetch-mode': 'cors',
+          'sec-fetch-site': 'same-origin',
+          'timezone': '-9',
+          'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+        },
+      });
+      console.log("CoinEx broadcast response:", coinExResponse.data);
+    }catch (error) {
+      console.error("CoinEx broadcast error:", error);
+    }
+    }
+
+    return result;
   }
 
   async bestBlock() {

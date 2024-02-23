@@ -5,6 +5,7 @@ import { MAX_LOCKTIME } from "./constants";
 import powJson from "./contracts/n20-pow.json";
 import { offlineVerify } from "./note-verify";
 import { stringToBytes } from "./utils";
+import jestConfig from "../jest.config";
 
 const bitwork = "20";
 
@@ -25,7 +26,7 @@ const mintData = {
   p: "n20",
   op: "mint",
   tick,
-  amt: 1000n * 10n ** 8n,
+  amt: 500n * 10n ** 8n,
 };
 
 export async function deployPowToken(wallet: Wallet) {
@@ -34,6 +35,7 @@ export async function deployPowToken(wallet: Wallet) {
 
 export async function mintPowToken(wallet: Wallet) {
   let toAddress, noteNote, payNotes, feeRate;
+  let checkcount = 0;
   let locktime = 0; //increase locktime to change TX
   let result;
   const bestBlock = await wallet.bestBlock();
@@ -66,6 +68,9 @@ export async function mintPowToken(wallet: Wallet) {
 
   const payload = wallet.buildN20Payload(mintData);
   while (locktime < MAX_LOCKTIME) {
+    if (locktime % 1000 === 0) {
+      console.log("🚀 ~ mintPowToken ~ locktime:", locktime);
+    }
     payload.locktime = locktime; //to change tx
     const tx = await wallet.buildN20Transaction(
       payload,
@@ -75,11 +80,11 @@ export async function mintPowToken(wallet: Wallet) {
       feeRate,
     );
     const txHash256 = hash256(tx.txHex);
-    console.log("checking", txHash256, locktime);
+    //console.log("checking", txHash256, locktime);
     if (txHash256.startsWith(deployData.bitwork)) {
       dataMap.mint.tx = tx.txHex;
       const verifyResult = offlineVerify(powJson, dataMap, "mint");
-      console.log("🚀 ~ mintPowToken ~ verifyResult:", verifyResult, tx);
+      console.log("🚀 ~ mintPowToken ~ verifyResult:", verifyResult, tx," index ", checkcount);
       if (verifyResult.success) {
         result = await wallet.broadcastTransaction(tx);
         locktime = 0;

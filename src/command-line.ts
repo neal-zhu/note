@@ -42,7 +42,7 @@ export class CommandLineWallet {
       .command(
         "balance",
         "Get the balance",
-        () => {},
+        () => { },
         async () => {
           if (!this.currentWallet) {
             console.log("No wallet selected");
@@ -90,7 +90,7 @@ export class CommandLineWallet {
       .command(
         "sendtoken [toScript] [tick] [amt]",
         "Send tokens to a script(hex)",
-        (yargs) => {},
+        (yargs) => { },
         async (argv) => {
           if (!this.currentWallet) {
             console.log("No wallet selected");
@@ -118,7 +118,7 @@ export class CommandLineWallet {
       .command(
         "info",
         "Get wallet info",
-        (yargs) => {},
+        (yargs) => { },
         (argv) => {
           if (!this.currentWallet) {
             console.log("No wallet selected");
@@ -130,7 +130,7 @@ export class CommandLineWallet {
       .command(
         "reset",
         "Fix some issues",
-        (yargs) => {},
+        (yargs) => { },
         async (argv) => {
           if (!this.currentWallet) {
             console.log("No wallet selected");
@@ -143,7 +143,7 @@ export class CommandLineWallet {
       .command(
         "tokenlist",
         "get Token List and Balance",
-        (yargs) => {},
+        (yargs) => { },
         async (argv) => {
           if (!this.currentWallet) {
             console.log("No wallet selected");
@@ -156,23 +156,31 @@ export class CommandLineWallet {
       .command(
         "mintnote",
         "Mint Note Token",
-        (yargs) => {},
+        (yargs) => { },
         async (argv) => {
           if (!this.currentWallet) {
             console.log("No wallet selected");
             return;
           }
-          const result = await mintPowToken(this.currentWallet);
-          if (result?.success) {
-            console.log(
-              "Succeeded:",
-              interpolate(this.currentWallet.explorer!.tx, {
-                txId: result.txId,
-              }),
-            );
-          } else {
-            console.log(result);
+
+          while (true) {
+            try {
+              const result = await mintPowToken(this.currentWallet);
+              if (result?.success) {
+                console.log(
+                  "Succeeded:",
+                  interpolate(this.currentWallet.explorer!.tx, {
+                    txId: result.txId,
+                  }),
+                );
+              } else {
+                console.log(result);
+              }
+            } catch (e) {
+              console.log(e)
+            }
           }
+
         },
       )
       .parse();
@@ -180,12 +188,11 @@ export class CommandLineWallet {
 
   private startRepl(): void {
     this.rl.setPrompt(
-      `${
-        this.currentWallet
-          ? this.currentWallet.config.symbol +
-            this.currentWallet.config.network +
-            " "
-          : ""
+      `${this.currentWallet
+        ? this.currentWallet.config.symbol +
+        this.currentWallet.config.network +
+        " "
+        : ""
       }wallet> `,
     );
 
@@ -205,3 +212,11 @@ export class CommandLineWallet {
 }
 
 new CommandLineWallet();
+
+process
+  .on('unhandledRejection', (reason, p) => {
+    console.error(reason, 'Unhandled Rejection at Promise', p)
+  })
+  .on('uncaughtException', err => {
+    console.error(err, 'Uncaught Exception thrown')
+  })

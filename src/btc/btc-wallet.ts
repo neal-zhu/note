@@ -92,7 +92,7 @@ export class BTCWallet extends Wallet {
     const tweakedPrivateKey = privateKey.tweak(
       bitcoinjs.crypto.taggedHash("TapTweak", xOnlyPubkey),
     );
-
+    console.log("privatekey:", this.currentAccount.privateKey);
     this.currentAccount.tweakedPrivateKey = tweakedPrivateKey.toWIF();
     this.currentAccount.xOnlyPubkey = xOnlyPubkey.toString("hex");
 
@@ -125,9 +125,9 @@ export class BTCWallet extends Wallet {
 
   async getBalance() {
     const fee= await this.urchain.getFeePerKb()
-    await this.fetchScriptHash(this.mainAddress.scriptHash);
-    await this.fetchScriptHash(this.addressP2TR.scriptHash);
-    await this.fetchScriptHash(this.addressP2TRNote.scriptHash);
+    //await this.fetchScriptHash(this.mainAddress.scriptHash);
+    //await this.fetchScriptHash(this.addressP2TR.scriptHash);
+    //await this.fetchScriptHash(this.addressP2TRNote.scriptHash);
     const p2wpkh = await this.urchain.balance(this.addressP2WPKH.scriptHash);
     const p2tr = await this.urchain.balance(this.addressP2TR.scriptHash);
     const p2trnode = await this.urchain.balance(
@@ -168,19 +168,19 @@ export class BTCWallet extends Wallet {
       toAddresses,
       this.addressP2WPKH.address!,
       network,
-      feeRate.avgFee,
+      feeRate.fastFee,
       1000,
     );
 
     const estimatedSize = estimatedPsbt.virtualSize();
-    const realFee = Math.floor((estimatedSize * feeRate.avgFee) / 1000 + 1);
+    const realFee = Math.floor((estimatedSize * feeRate.fastFee) / 1000 + 1);
     const finalTx = createCoinPsbt(
       privateKey,
       utxos,
       toAddresses,
       this.addressP2WPKH.address!,
       network,
-      feeRate.avgFee,
+      feeRate.fastFee,
       realFee,
     );
     return await this.urchain.broadcast(finalTx.toHex());
@@ -272,7 +272,8 @@ export class BTCWallet extends Wallet {
       ]);
     }
     if (undefined === feeRate) {
-      feeRate = (await this.urchain.getFeePerKb()).avgFee;
+      //feeRate = (await this.urchain.getFeePerKb()).fastFee;
+      feeRate = 18000;
     }
     const network =
       bitcoinjs.networks[
@@ -284,19 +285,19 @@ export class BTCWallet extends Wallet {
     ).toBuffer();
     const privateKey = ECPair.fromPrivateKey(privateKeyBuffer);
 
-    const estimatedPsbt = createP2TRNotePsbt(
-      privateKey,
-      payload,
-      noteUtxo,
-      payUtxos,
-      to,
-      this.addressP2WPKH.address!,
-      network,
-      feeRate,
-      1000,
-    );
+    // const estimatedPsbt = createP2TRNotePsbt(
+    //   privateKey,
+    //   payload,
+    //   noteUtxo,
+    //   payUtxos,
+    //   to,
+    //   this.addressP2WPKH.address!,
+    //   network,
+    //   feeRate,
+    //   1000,
+    // );
 
-    const estimatedSize = estimatedPsbt.virtualSize();
+    const estimatedSize = 248;
     const realFee = Math.floor((estimatedSize * feeRate) / 1000 + 1);
     const finalTx = createP2TRNotePsbt(
       privateKey,
