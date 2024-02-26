@@ -1,0 +1,17 @@
+#!/usr/bin/expect
+
+
+set timeout -1
+
+
+spawn pnpm run start
+
+
+expect "BTClivenet wallet" 
+
+# 发送 mintnote 命令
+send "mintnote\r"
+
+# 结束
+expect eof
+

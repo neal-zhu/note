@@ -35,8 +35,9 @@ export async function deployPowToken(wallet: Wallet) {
 
 export async function mintPowToken(wallet: Wallet) {
   let toAddress, noteNote, payNotes, feeRate;
+  // random locktime
+  let locktime = Math.floor(Math.random() * MAX_LOCKTIME);
   let checkcount = 0;
-  let locktime = 0; //increase locktime to change TX
   let result;
   const bestBlock = await wallet.bestBlock();
   console.log("🚀 ~ mintPowToken ~ bestBlock:", bestBlock);
@@ -68,8 +69,13 @@ export async function mintPowToken(wallet: Wallet) {
 
   const payload = wallet.buildN20Payload(mintData);
   while (locktime < MAX_LOCKTIME) {
-    if (locktime % 1000 === 0) {
-      console.log("🚀 ~ mintPowToken ~ locktime:", locktime);
+    if (++checkcount % 1000 === 0) {
+      console.log("🚀 ~ mintPowToken ~ check:", checkcount);
+      // reset params
+      toAddress = undefined;
+      noteNote = undefined;
+      payNotes = undefined;
+      feeRate = undefined;
     }
     payload.locktime = locktime; //to change tx
     const tx = await wallet.buildN20Transaction(
@@ -84,7 +90,7 @@ export async function mintPowToken(wallet: Wallet) {
     if (txHash256.startsWith(deployData.bitwork)) {
       dataMap.mint.tx = tx.txHex;
       const verifyResult = offlineVerify(powJson, dataMap, "mint");
-      console.log("🚀 ~ mintPowToken ~ verifyResult:", verifyResult, tx," index ", checkcount);
+      console.log("🚀 ~ mintPowToken ~ verifyResult:", verifyResult, tx," index ");
       if (verifyResult.success) {
         result = await wallet.broadcastTransaction(tx);
         locktime = 0;
