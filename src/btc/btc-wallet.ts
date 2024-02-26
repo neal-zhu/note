@@ -125,9 +125,9 @@ export class BTCWallet extends Wallet {
 
   async getBalance() {
     const fee= await this.urchain.getFeePerKb()
-    //await this.fetchScriptHash(this.mainAddress.scriptHash);
-    //await this.fetchScriptHash(this.addressP2TR.scriptHash);
-    //await this.fetchScriptHash(this.addressP2TRNote.scriptHash);
+    await this.fetchScriptHash(this.mainAddress.scriptHash);
+    await this.fetchScriptHash(this.addressP2TR.scriptHash);
+    await this.fetchScriptHash(this.addressP2TRNote.scriptHash);
     const p2wpkh = await this.urchain.balance(this.addressP2WPKH.scriptHash);
     const p2tr = await this.urchain.balance(this.addressP2TR.scriptHash);
     const p2trnode = await this.urchain.balance(
@@ -272,8 +272,7 @@ export class BTCWallet extends Wallet {
       ]);
     }
     if (undefined === feeRate) {
-      //feeRate = (await this.urchain.getFeePerKb()).fastFee;
-      feeRate = 18000;
+      feeRate = (await this.urchain.getFeePerKb()).fastFee;
     }
     const network =
       bitcoinjs.networks[
