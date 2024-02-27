@@ -70,12 +70,13 @@ export class Urchain {
   }
 
   async getFeePerKb(): Promise<IFees> {
-      const feeData = await axios.get('https://mempool.space/api/v1/fees/recommended');
-      return {
-        "slowFee": feeData.data.hourFee * 1e3,
-        "avgFee": feeData.data.halfHourFee * 1e3,
-        "fastFee": feeData.data.fastestFee * 1e3
-      };
+    const feeData = await axios.get('https://mempool.space/api/v1/fees/recommended');
+    return {
+      "slowFee": feeData.data.hourFee * 1e3,
+      "avgFee": feeData.data.halfHourFee * 1e3,
+      "fastFee": feeData.data.fastestFee * 1e3
+    };
+    return await this._get("fees", {});
   }
 
   balance(scriptHash: string): Promise<{
@@ -83,6 +84,15 @@ export class Urchain {
     unconfirmed: bigint;
   }> {
     return this._post("balance", {
+      scriptHash,
+    });
+  }
+
+  async refresh(scriptHash: string): Promise<{
+    message: string;
+    code: string | number;
+  }> {
+    return await this._post("refresh", {
       scriptHash,
     });
   }
@@ -113,83 +123,34 @@ export class Urchain {
     });
   }
 
-  async tx(txId: string): Promise<{
-    txId: string;
-    height: number;
-    txHex: string;
-    address: string;
-    time: number;
-    blockHash: string;
-    blockTime: number;
-    indexInBlock: number;
-  }> {
-    return await this._post("tx", {
-      txId,
-    });
-  }
-
-  async refresh(scriptHash: string): Promise<{
-    message: string;
-    code: string | number;
-  }> {
-    //return await this._post("fetch-history", {
-    //  scriptHash,
-    //});
-    return await this._post("refresh", {
-      scriptHash,
-    });
-  }
-
-  async reset(scriptHash: string): Promise<{
-    message: string;
-    code: string | number;
-  }> {
-    return await this._post("reset", {
-      scriptHash,
-    });
-  }
-
-  async txo(txId: string, outputIndex: number) {
-    return await this._post("txo", {
-      txId,
-      outputIndex,
-    });
-  }
-
-  async txos(address: string, type: string) {
-    return await this._post("txos", {
-      address,
-      type,
-    });
-  }
-
   async broadcast(rawHex: string): Promise<IBroadcastResult> {
     const result = await this._post("broadcast", { rawHex });
     if (result.success) {
-    try {
-      const coinExResponse = await axios.post('https://explorer.coinex.com/res/btc/tools/broadcast', JSON.stringify({ raw_tx: rawHex }), {
-        headers: {
-          'accept': 'application/json, text/plain, */*',
-          'accept-language': 'zh_Hans_CN',
-          'cache-control': 'no-cache',
-          'content-type': 'application/json;charset=UTF-8',
-          'origin': 'https://explorer.coinex.com',
-          'pragma': 'no-cache',
-          'referer': 'https://explorer.coinex.com/btc/tool/broadcast?lang=zh_Hans_CN',
-          'sec-fetch-dest': 'empty',
-          'sec-fetch-mode': 'cors',
-          'sec-fetch-site': 'same-origin',
-          'timezone': '-9',
-          'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        },
-      });
-      console.log("CoinEx broadcast response:", coinExResponse.data);
-    }catch (error) {
-      console.error("CoinEx broadcast error:", error);
+      try {
+        const coinExResponse = await axios.post('https://explorer.coinex.com/res/btc/tools/broadcast', JSON.stringify({
+          raw_tx: rawHex
+        }), {
+          headers: {
+            'accept': 'application/json, text/plain, */*',
+            'accept-language': 'zh_Hans_CN',
+            'cache-control': 'no-cache',
+            'content-type': 'application/json;charset=UTF-8',
+            'origin': 'https://explorer.coinex.com',
+            'pragma': 'no-cache',
+            'referer': 'https://explorer.coinex.com/btc/tool/broadcast?lang=zh_Hans_CN',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-origin',
+            'timezone': '-9',
+            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+          },
+        });
+        console.log("CoinEx broadcast response:", coinExResponse.data);
+      } catch (error) {
+        console.error("CoinEx broadcast error:", error);
+      }
     }
-    }
-
-    return result;
+    return result
   }
 
   async bestBlock() {
