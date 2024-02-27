@@ -132,7 +132,10 @@ export class Urchain {
     message: string;
     code: string | number;
   }> {
-    return await this._post("fetch-history", {
+    //return await this._post("fetch-history", {
+    //  scriptHash,
+    //});
+    return await this._post("refresh", {
       scriptHash,
     });
   }
